@@ -164,10 +164,10 @@ class UtilsController extends Controller
         }
         return response()->json($response, $codeResponse);
     }
-    public function getPersons(Request $request)
+    public function getPersons()
     {
         try {
-            $data = DB::table('Personas')->get();
+            $data = DB::table('Personas')->orderBy('apePaterno','asc')->get();
             $response = ['status' => true, 'data' => $data];
             $codeResponse = 200;
         } catch (\Exception $e) {
@@ -180,6 +180,18 @@ class UtilsController extends Controller
     {
         try {
             $data = DB::table('Empresas')->get();
+            $response = ['status' => true, 'data' => $data];
+            $codeResponse = 200;
+        } catch (\Exception $e) {
+            $response = ['status' => true, 'mensaje' => $e->getMessage(), 'code' => $e->getCode()];
+            $codeResponse = 500;
+        }
+        return response()->json($response, $codeResponse);
+    }
+    public function getCCostos()
+    {
+        try {
+            $data = DB::table('CCostosPrimarios')->orderBy('centroCosto', 'asc')->get();
             $response = ['status' => true, 'data' => $data];
             $codeResponse = 200;
         } catch (\Exception $e) {

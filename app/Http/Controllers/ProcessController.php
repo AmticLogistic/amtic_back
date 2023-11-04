@@ -19,11 +19,11 @@ class ProcessController extends Controller
                     'Personas.apeMaterno as materno',
                 )
                 ->get();
-            if(count($data) > 0){
+            if (count($data) > 0) {
                 foreach ($data as $key => $row) {
                     $row->list = DB::table('RequerimientosMateriales')
                         ->where('Requerimientos_id', $row->id)
-                        ->join('Materiales', 'Materiales.id','=','RequerimientosMateriales.Materiales_id' )
+                        ->join('Materiales', 'Materiales.id', '=', 'RequerimientosMateriales.Materiales_id')
                         ->select('Materiales.material', 'RequerimientosMateriales.cantidad')
                         ->get();
                 }
@@ -138,6 +138,67 @@ class ProcessController extends Controller
         }
         return response()->json($response, $codeResponse);
     }
+    public function saveOutput(Request $request)
+    {
+        $salida = [
+            'fecha' => $request->fecha ?? date("Y-m-d"),
+            'observacion' => $request->observacion,
+            'Personas_id' => $request->Personas_id,
+            'TiposMovimientos_id' => 2,
+            'CCostosPrimarios_id' => $request->CCostosPrimarios_id,
+        ];
+        try {
+            DB::beginTransaction();
+            $register = DB::table('Salidas')->insertGetId($salida);
+            foreach ($request->detalles as $key => $value) {
+                $detalles = DB::table('SalidasMateriales')->insertGetId([
+                    'cantidad' => $value['cantidad'],
+                    'observacion' =>  null,
+                    'Materiales_id' => $value['Material_id'],
+                    'Salidas_id' => $register,
+                ]);
+            }
+            DB::commit();
+            $response = ['status' => true, 'data' => $register];
+            $codeResponse = 200;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $response = ['status' => true, 'mensaje' => $e->getMessage(), 'code' => $e->getCode()];
+            $codeResponse = 500;
+        }
+        return response()->json($response, $codeResponse);
+    }
+    public function listOutput()
+    {
+        try {
+            $data = DB::table('Salidas')
+                ->join('Personas', 'Salidas.personas_id', '=', 'Personas.id')
+                ->join('CCostosPrimarios', 'Salidas.CCostosPrimarios_id', '=', 'CCostosPrimarios.id')
+                ->select(
+                    'Salidas.*',
+                    'CCostosPrimarios.centroCosto as cc',
+                    'Personas.nombres as nombre',
+                    'Personas.apePaterno as paterno',
+                    'Personas.apeMaterno as materno',
+                )
+                ->get();
+            if (count($data) > 0) {
+                foreach ($data as $row) {
+                    $row->list = DB::table('SalidasMateriales')
+                        ->where('Salidas_id', $row->id)
+                        ->join('Materiales', 'Materiales.id', '=', 'SalidasMateriales.Materiales_id')
+                        ->select('Materiales.material', 'SalidasMateriales.cantidad')
+                        ->get();
+                }
+            }
+            $response = ['status' => true, 'data' => $data];
+            $codeResponse = 200;
+        } catch (\Exception $e) {
+            $response = ['status' => true, 'mensaje' => $e->getMessage(), 'code' => $e->getCode()];
+            $codeResponse = 500;
+        }
+        return response()->json($response, $codeResponse);
+    }
 
     public function listOrden()
     {
@@ -191,7 +252,7 @@ class ProcessController extends Controller
             ELSE NULL
         END AS moneda')
             ->get();
-
         return response()->json($entradas);
     }
+    
 }

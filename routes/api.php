@@ -3,6 +3,7 @@
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UtilsController;
 use App\Http\Controllers\ProcessController;
+use App\Http\Controllers\ReportsController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,10 @@ Route::group(['prefix' => 'utils'], function () {
     Route::get('getProviders',[ UtilsController::class,'getProviders' ]);
     Route::get('getTransport',[ UtilsController::class,'getTransport' ]);
     Route::get('getOrderOne/{id}',[ UtilsController::class,'getOrderOne' ]);
+    Route::get('getPersonas',[ UtilsController::class,'getPersonas' ]); 
+    Route::get('getProviders',[ UtilsController::class,'getProviders' ]);
+    Route::get('getCCostos',[ UtilsController::class,'getCCostos' ]);
+    
 });
 
 Route::group(['prefix' => 'process'], function () {
@@ -65,5 +70,17 @@ Route::group(['prefix' => 'process'], function () {
 
     Route::post('saveInput',[ ProcessController::class,'saveInput' ]);
     Route::get('obtenerEntradas',[ ProcessController::class,'obtenerEntradas' ]);
+
+    Route::post('saveOutput',[ ProcessController::class,'saveOutput' ]);
+    Route::get('listOutput',[ ProcessController::class,'listOutput' ]);
+
+});
+
+Route::group(['prefix' => 'report'], function () {
+    Route::get('inventory',[ ReportsController::class,'getReportInventory' ]);
+    Route::get('kardex',[ ReportsController::class,'getReportKardex' ]);
     
+    Route::get('inventoryPdf',[ ReportsController::class,'getReportInventoryPdf' ]);
+    Route::get('kardexPdf',[ ReportsController::class,'getReportKardexPdf' ]);
+    Route::get('ordenesCompraPdf/{id}',[ ReportsController::class,'getReportOrdenesPDF' ]);
 });
